@@ -78,6 +78,7 @@ export default function ChatPage() {
     };
   }, [socket, groupId]);
 
+
   useEffect(() => {
     if (status != "loading") {
       setLoading(false)
