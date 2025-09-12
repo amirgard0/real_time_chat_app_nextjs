@@ -56,6 +56,27 @@ export default function ChatPage() {
   const { socket, isConnected } = useSocket(session);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true)
+  const groupId = "cmffnhx830000tklc3opcqojo"
+  const [joined, setJoined] = useState<{ joined: boolean, message: string }>({ joined: false, message: "" })
+
+  useEffect(() => {
+    if (!socket || !groupId) return;
+
+    const handleJoin = () => {
+      socket.emit("joinGroup", groupId, (response: any) => {
+        console.log(response)
+        if (response.status === "ok") setJoined({ joined: true, message: "good" });
+        else if (response.status === "not found") { setJoined({ joined: false, message: "not found" }) }
+        else alert("Error joining group");
+      });
+    };
+
+    handleJoin();
+
+    return () => {
+      socket.emit("leaveGroup", groupId); // ✅ Clean up
+    };
+  }, [socket, groupId]);
 
   useEffect(() => {
     if (status != "loading") {
@@ -67,6 +88,7 @@ export default function ChatPage() {
     if (!socket) return;
 
     socket.emit("globalMessages")
+    // socket
 
     socket.on("recentMessages", (msgs) => {
       setMessages(msgs);
@@ -92,16 +114,15 @@ export default function ChatPage() {
 
   const handleSendMessageAction = (formData: FormData, socket: any) => {
     if (!socket) return;
-    const group = { name: "global", id: "cmffnhx830000tklc3opcqojo" }
     const content = formData.get("message") as string
     if (!content) {
       return
     }
-    socket.emit("sendMessage", { content, group })
+    socket.emit("sendMessage", { content, groupId })
   }
 
 
-  if (loading) {
+  if (loading || !joined) {
     return <ChatSkeleton />
   } else if (status == "unauthenticated") {
     return <div>
