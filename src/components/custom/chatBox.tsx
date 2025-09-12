@@ -1,13 +1,31 @@
-import { auth } from "@/lib/auth"
-import { MessageBubble } from "./messageBubble"
+// src/components/custom/chatBox.tsx
+import { useEffect, useRef } from "react";
+import { MessageBubble } from "./messageBubble";
 
-export const ChatBox = ({ messages, username }: { messages: any[], username: string }) => {
-  return <div className="bg-muted p-2 rounded-xl flex flex-col">
-    {messages.map((msg) => {
-      const isUsers = msg.user.name == username
-      return <div key={msg.id} className={`flex ${isUsers && "justify-end"}`}>
-        <MessageBubble message={msg} isUsers={isUsers} />
-      </div>
-    })}
-  </div>
-}
+export const ChatBox = ({ messages, username }: { messages: any[]; username: string }) => {
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  return (
+    <div
+      ref={chatRef}
+      className="bg-muted p-4 rounded-xl flex flex-col gap-2 max-h-[400px] overflow-y-auto"
+      role="log"
+      aria-live="polite"
+    >
+      {messages.map((msg) => {
+        const isUsers = msg.user.name === username;
+        return (
+          <div key={msg.id} className={`flex ${isUsers ? "justify-end" : "justify-start"}`}>
+            <MessageBubble message={msg} isUsers={isUsers} />
+          </div>
+        );
+      })}
+    </div>
+  );
+};

@@ -1,18 +1,32 @@
-import { Button } from "../ui/button"
-import { Card } from "../ui/card"
-
-export const MessageBubble = ({ message, isUsers }: { message: any, isUsers: boolean }) => {
+// src/components/custom/messageBubble.tsx
+export const MessageBubble = ({ message, isUsers }: { message: any; isUsers: boolean }) => {
   return (
-    <div className="flex flex-col justify-end w-[45%]">
-      {
-        !isUsers &&
-        <small className="opacity-35">{message.user.name}</small>
-      }
-      <div className={`relative flex ${isUsers && "justify-end"}`}>
-        <div className={`${isUsers ? "bg-blue-600" : "bg-primary"} text-primary-foreground w-max p-1 px-3 my-1 rounded-xl right-0`}>
-          {message.content}
+    <div
+      className={`flex flex-col w-full sm:w-[70%] md:w-[50%] transition-all duration-200 hover:bg-opacity-80 ${isUsers ? "items-end" : "items-start"
+        }`}
+    >
+      {!isUsers && (
+        <div className="flex items-center gap-2 mb-1">
+          {/* <img
+            src={message.user.avatar || "/default-avatar.png"}
+            alt={`${message.user.name}'s avatar`}
+            className="w-6 h-6 rounded-full"
+          /> */}
+          <small className="text-sm text-muted-foreground">{message.user.name}</small>
         </div>
+      )}
+      <div
+        className={`relative p-3 rounded-xl shadow-sm ${isUsers
+          ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white"
+          : "bg-gray-200 text-gray-800"
+          }`}
+        role="article"
+      >
+        <p>{message.content}</p>
+        <small className="text-xs opacity-50 mt-1 block">
+          {new Date(message.createdAt).toLocaleTimeString()}
+        </small>
       </div>
     </div>
-  )
-}
+  );
+};

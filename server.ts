@@ -127,19 +127,15 @@ io.on("connection", async (socket) => {
   // Send message
   const commandList = ["/clear", "/deleteGroup"];
 
-  socket.on("sendMessage", async ({ content, groupId, callback }: { content: string; groupId: string, callback: (object: object) => void }) => {
-    // Handle commands
+  socket.on("sendMessage", async ({ content, groupId }, callback) => {
     if (commandList.includes(content)) {
       const group = await prisma.group.findUnique({
         where: { id: groupId },
         select: { creatorId: true },
       });
-
       if (!group || userId !== group.creatorId) {
-        return; // Only creator can execute commands
+        return;
       }
-
-
       if (content === "/clear") {
         await prisma.message.deleteMany({ where: { groupId } });
         console.log(`${userName} cleared messages in group: ${groupId}`);
@@ -163,30 +159,33 @@ io.on("connection", async (socket) => {
         .catch((error) => {
           console.error("Failed to load global messages:", error);
         });
-      return
+      if (typeof callback === "function") {
+        callback({ status: "ok" });
+      }
+      return;
     }
 
-    // Normal message
     try {
       const message = await prisma.message.create({
-        data: {
-          userId: userId,
-          content: content,
-          groupId: groupId,
-        },
+        data: { userId, content, groupId },
       });
-
       io.to(groupId).emit("newMessage", {
         id: message.id,
         content: message.content,
         userId: message.userId,
         user: { name: userName },
         createdAt: message.createdAt,
-        groupId: groupId,
+        groupId,
       });
+      if (typeof callback === "function") {
+        callback({ status: "ok" });
+      }
     } catch (error) {
       console.error("Failed to send message:", error);
       socket.emit("error", { message: "Failed to send message" });
+      if (typeof callback === "function") {
+        callback({ status: "error" });
+      }
     }
   });
 
