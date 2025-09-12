@@ -49,12 +49,17 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  messages      Message[]
   password      String?
+
+  isOnline Boolean   @default(false)
+  lastSeen DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  groups    Group[]
+
+  groups        GroupMember[]
+  messages      Message[]
+  createdGroups Group[]       @relation("GroupCreator")
 }
 
 model VerificationToken {
@@ -65,17 +70,50 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  avatar      String?
+  isPrivate   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  creatorId String
+  creator   User          @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  members   GroupMember[]
+  messages  Message[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id         String    @id @default(cuid())
+  userId     String
+  groupId    String
+  joinedAt   DateTime  @default(now())
+  mutedUntil DateTime?
+
+  // Relationships
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("group_members")
+}
+
 model Message {
   id        String   @id @default(cuid())
   content   String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([createdAt])
-}
+  // Relationships
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
-model Group {
-  id    String @id @default(cuid())
-  users User[]
+  @@map("messages")
 }
