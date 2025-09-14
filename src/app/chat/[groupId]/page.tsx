@@ -56,7 +56,7 @@ function GroupNotFound() {
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <h1 className="text-2xl font-bold">Group Not Found</h1>
-      <p className="text-muted-foreground mt-2">The chat group you’re trying to access doesn’t exist.</p>
+      <p className="text-muted-foreground mt-2">The chat group you're trying to access doesn't exist.</p>
       <Link href="/" className="mt-4 text-blue-600 hover:underline">
         Return to Home
       </Link>

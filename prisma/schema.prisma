@@ -43,6 +43,7 @@ model Session {
 
 model User {
   id            String    @id @default(cuid())
+  publicId      String    @unique
   name          String?
   email         String?   @unique
   emailVerified DateTime?
@@ -61,8 +62,12 @@ model User {
   messages      Message[]
   createdGroups Group[]       @relation("GroupCreator")
 
-  sentMessages     PrivateMessage[] @relation("SentMessages")
-  receivedMessages PrivateMessage[] @relation("ReceivedMessages")
+  sentMessages PrivateMessage[] @relation("SentMessages")
+
+  chats1 PrivateChat[] @relation("ChatUser1")
+  chats2 PrivateChat[] @relation("ChatUser2")
+
+  privateChatId String?
 }
 
 model VerificationToken {
@@ -121,23 +126,33 @@ model Message {
   @@map("messages")
 }
 
+model PrivateChat {
+  id       String           @id @default(cuid())
+  user1    User             @relation("ChatUser1", fields: [user1Id], references: [id])
+  user2    User             @relation("ChatUser2", fields: [user2Id], references: [id])
+  user1Id  String
+  user2Id  String
+  messages PrivateMessage[]
+
+  // Ensure unique combinations of users
+  @@unique([user1Id, user2Id])
+  @@map("private_chats")
+}
+
 model PrivateMessage {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  senderId  String
+  chatId    String
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
 
-  // Relationships - both sender and receiver
-  senderId String
-  sender   User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  // Relationships
+  sender User        @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  chat   PrivateChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
-  receiverId String
-  receiver   User   @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  // Optional: track if message has been read
-  isRead Boolean   @default(false)
-  readAt DateTime?
-
-  @@index([senderId, receiverId])
   @@index([createdAt])
+  @@map("private_messages")
 }

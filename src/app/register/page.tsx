@@ -13,6 +13,7 @@ export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [publicId, setPublicId] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -31,6 +32,11 @@ export default function Register() {
     // Validate password strength
     if (password.length < 6) {
       setError('Password must be at least 6 characters long')
+      return
+    }
+
+    if (!(publicId[0] == "@")) {
+      setError('pulbicId must start with "@"')
       return
     }
 
@@ -131,6 +137,20 @@ export default function Register() {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="publicId">Email address</Label>
+              <Input
+                id="publicId"
+                name="publicId"
+                type="email"
+                required
+                placeholder="publicId"
+                value={publicId}
+                onChange={(e) => setPublicId(e.target.value)}
                 disabled={isLoading}
               />
             </div>

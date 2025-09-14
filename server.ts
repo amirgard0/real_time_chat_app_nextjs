@@ -41,6 +41,7 @@ io.on("connection", async (socket) => {
   // Join global room by default
   socket.join("global");
 
+
   // Send recent global messages on connect
   socket.on("globalMessages", async () => {
     try {
@@ -63,7 +64,7 @@ io.on("connection", async (socket) => {
   // Join a specific group
   socket.on("joinGroup", async (groupId, callback) => {
     try {
-      const group = await prisma.group.findUnique({
+      const group = await prisma.group.findUniqueOrThrow({
         where: { id: groupId },
         select: { id: true, name: true },
       });
@@ -92,7 +93,6 @@ io.on("connection", async (socket) => {
       });
 
       socket.emit("recentMessages", messages.reverse());
-      console.log(`${userName} joined group: ${group.name} (${groupId})`);
       callback({ status: "ok" });
     } catch (error) {
       console.error("Error joining group:", error);
@@ -100,6 +100,108 @@ io.on("connection", async (socket) => {
       callback({ status: "error" });
     }
   });
+
+  // Join Private chat
+  socket.on("joinPrivateChat", async (privateChatId, callback: (object: any) => void) => {
+    try {
+      // const privateChat = await prisma.privateChat.upsert({
+      //   where: {
+      //     user1Id_user2Id: {
+      //       user1Id: sortedIds[0],
+      //       user2Id: sortedIds[1]
+      //     }
+      //   },
+      //   create: {
+      //     user1Id: sortedIds[0],
+      //     user2Id: sortedIds[1]
+      //   },
+      //   update: {},
+      // });
+      if (!privateChatId) {
+        throw new Error("no privateChatId received")
+      }
+      const privateChat = await prisma.privateChat.findUnique({
+        where: {
+          id: privateChatId
+        }
+
+      })
+      if (!privateChat) {
+        callback({ status: "not found" })
+        throw new Error("no private chat found")
+      }
+
+      socket.leave(socket.data.currentRoom)
+      socket.join("privateChat" + privateChatId)
+      socket.data.currentRoom = "privateChat" + privateChatId
+
+      const messages = await prisma.privateMessage.findMany({
+        where: {
+          chatId: privateChatId
+        },
+        orderBy: {
+          createdAt: "desc"
+        },
+        include: {
+          sender: { select: { name: true, id: true } }
+        },
+        take: 100
+      })
+
+      callback({ status: "ok", messages: messages.reverse() })
+    } catch (error) {
+      console.error("error: " + error)
+      socket.emit("error", { message: "Failed to join privatechat" })
+      callback({ status: "error" })
+    }
+
+  })
+
+  socket.on("sendPrivateMessage", async ({ content, privateChatId }, callback) => {
+    try {
+      const chat = await prisma.privateChat.findUnique({
+        where: { id: privateChatId },
+        include: { user1: true, user2: true },
+      });
+
+      if (!chat) {
+        throw new Error("Chat not found");
+      }
+
+      // Check if the user is part of this chat
+      if (chat.user1Id !== userId && chat.user2Id !== userId) {
+        throw new Error("User is not part of this chat");
+      }
+
+      const privateMessage = await prisma.privateMessage.create({
+        data: {
+          content: content,
+          chatId: privateChatId,
+          senderId: userId
+        }
+      })
+
+
+
+      io.to(privateChatId).emit("newPrivateMessage", {
+        id: privateMessage.id,
+        content: privateMessage.content,
+        user: { name: userName },
+        createdAt: privateMessage.createdAt,
+        privateChatId: privateChatId,
+      })
+      if (typeof callback === "function") {
+        callback({ status: "ok" })
+      }
+    } catch (error) {
+      console.error("Failed to send private message:", error);
+      socket.emit("error", { message: "Failed to send private message" });
+      if (typeof callback === "function") {
+        callback({ status: "error" });
+      }
+    }
+
+  })
 
   // Leave a group (called on cleanup/unmount)
   socket.on("leaveGroup", (groupId) => {
@@ -175,7 +277,7 @@ io.on("connection", async (socket) => {
         userId: message.userId,
         user: { name: userName },
         createdAt: message.createdAt,
-        groupId,
+        groupId: groupId,
       });
       if (typeof callback === "function") {
         callback({ status: "ok" });
