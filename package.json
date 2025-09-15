@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev:next": "next dev",
+    "dev:next": "next dev --turbopack",
     "dev:server": "tsx watch server.js",
     "build": "next build --turbopack",
     "start": "next start",
