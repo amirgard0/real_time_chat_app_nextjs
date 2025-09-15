@@ -49,7 +49,7 @@ export default function Register() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, publicId }),
       })
 
       const data = await response.json()
@@ -142,11 +142,11 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="publicId">Email address</Label>
+              <Label htmlFor="publicId">Public id</Label>
               <Input
                 id="publicId"
                 name="publicId"
-                type="email"
+                type="text"
                 required
                 placeholder="publicId"
                 value={publicId}
