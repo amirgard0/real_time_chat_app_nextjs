@@ -59,7 +59,7 @@ export default function ChatPage() {
   const { socket, isConnected } = useSocket(session);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const groupId = "cmffnhx830000tklc3opcqojo";
+  const groupId = "cmfl1kjjz0000tk7wi65go10w";
   const [joined, setJoined] = useState<{ joined: boolean; message: string }>({
     joined: false,
     message: "",
