@@ -71,7 +71,6 @@ export default function ChatPage() {
 
     const handleJoin = () => {
       socket.emit("joinGroup", groupId, (response: any) => {
-        console.log(response);
         if (response.status === "ok") setJoined({ joined: true, message: "good" });
         else if (response.status === "not found")
           setJoined({ joined: false, message: "not found" });
