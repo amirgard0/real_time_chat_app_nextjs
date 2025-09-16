@@ -67,8 +67,8 @@ export default () => {
   const { data: session, status } = useSession();
   const { socket, isConnected } = useSocket(session);
   const [messages, setMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(true)
   const { privateChatId } = useParams<{ privateChatId: string }>();
   const [joined, setJoined] = useState<{ joined: boolean; message: string }>({
     joined: false,
@@ -97,15 +97,14 @@ export default () => {
 
     const handleJoin = () => {
       socket.emit("joinPrivateChat", privateChatId, (response: any) => {
-        console.log(response);
         if (response.status === "ok") {
           setJoined({ joined: true, message: "good" });
-          // toast.success("Joined group successfully!");
+          console.log(response)
           setMessages(response.messages)
         } else if (response.status === "not found") {
           setJoined({ joined: false, message: "not found" });
         } else {
-          toast.error("Failed to join group");
+          toast.error("Failed to join");
         }
       });
     };
@@ -130,6 +129,15 @@ export default () => {
     };
   }, [socket]);
 
+  useEffect(() => {
+    if (status != "loading") {
+      setLoading(false)
+    }
+  }, [status])
+
+  if (loading) {
+    return <ChatSkeleton />
+  }
 
   if (status === "unauthenticated") {
     return (
@@ -150,6 +158,7 @@ export default () => {
   if (joined.message === "not found") {
     return <ChatNotFound />;
   }
+
 
   return <div>
     <Card className="p-4 shadow-lg">
