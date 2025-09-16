@@ -19,10 +19,18 @@ export const ChatBox = ({ messages, username }: { messages: any[]; username: str
       aria-live="polite"
     >
       {messages.map((msg) => {
-        const isUsers = msg.user.name === username;
+        let inMessageUserName
+        if (msg.user) {
+          inMessageUserName = msg.user.name
+        } else if (msg.sender) {
+          inMessageUserName = msg.sender.name
+        } else {
+          return
+        }
+        const isUsers = inMessageUserName === username
         return (
           <div key={msg.id} className={`flex ${isUsers ? "justify-end" : "justify-start"}`}>
-            <MessageBubble message={msg} isUsers={isUsers} />
+            <MessageBubble message={msg} isUsers={isUsers} inMessageUsername={inMessageUserName} />
           </div>
         );
       })}
