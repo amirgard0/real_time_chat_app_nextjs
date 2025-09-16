@@ -37,6 +37,26 @@ io.on("connection", async (socket) => {
   const userName = socket.data.userName;
 
   console.log(`User connected: ${userId} (${userName})`);
+  // await prisma.user.update({
+  //   where: {
+  //     id: userId
+  //   },
+  //   data: {
+  //     lastSeen: new Date(Date.now()),
+  //     isOnline: true
+  //   }
+  // })
+  // console.log("update done")
+
+  prisma.user.update({
+    where: {
+      id: userId
+    },
+    data: {
+      lastSeen: new Date(Date.now()),
+      isOnline: true
+    }
+  })
 
   // Join global room by default
   socket.join("global");
@@ -181,9 +201,7 @@ io.on("connection", async (socket) => {
         }
       })
 
-
-
-      io.to(privateChatId).emit("newPrivateMessage", {
+      io.to("privateChat" + privateChatId).emit("newPrivateMessage", {
         id: privateMessage.id,
         content: privateMessage.content,
         user: { name: userName },
@@ -343,11 +361,17 @@ io.on("connection", async (socket) => {
   // =====================
   // 💥 Disconnect
   // =====================
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     console.log(`User disconnected: ${userId} (${userName})`);
     if (socket.data.currentRoom !== "global") {
       console.log(`Left room: ${socket.data.currentRoom}`);
     }
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isOnline: false
+      }
+    })
   });
 });
 
