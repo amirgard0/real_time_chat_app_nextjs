@@ -13,14 +13,14 @@ async function searchGroups(formData: FormData) {
 
 export default async function GroupSearchPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-slate-800 mb-3 flex items-center justify-center gap-2">
+          <h1 className="text-4xl font-bold mb-3 flex items-center justify-center gap-2">
             <Users className="h-10 w-10 text-blue-500" />
             Find Communities
           </h1>
-          <p className="text-slate-600 max-w-md mx-auto">
+          <p className="text-foreground/60 max-w-md mx-auto">
             Discover and join communities that match your interests
           </p>
         </div>
