@@ -1,5 +1,5 @@
 // src/components/custom/messageBubble.tsx
-export const MessageBubble = ({ message, isUsers }: { message: any; isUsers: boolean }) => {
+export const MessageBubble = ({ message, isUsers, inMessageUsername }: { message: any; isUsers: boolean, inMessageUsername: string }) => {
   return (
     <div
       className={`flex flex-col w-full sm:w-[70%] md:w-[50%] transition-all duration-200 hover:bg-opacity-80 ${isUsers ? "items-end" : "items-start"
@@ -12,7 +12,7 @@ export const MessageBubble = ({ message, isUsers }: { message: any; isUsers: boo
             alt={`${message.user.name}'s avatar`}
             className="w-6 h-6 rounded-full"
           /> */}
-          <small className="text-sm text-muted-foreground">{message.user.name}</small>
+          <small className="text-sm text-muted-foreground">{inMessageUsername}</small>
         </div>
       )}
       <div
