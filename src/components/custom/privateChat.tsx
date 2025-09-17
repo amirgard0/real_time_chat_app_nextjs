@@ -72,22 +72,36 @@ export const PrivateChat = ({
   session,
   status,
   socket,
-  isConnected
+  isConnected,
+  privateChatId: CprivateChatId
 }: {
   session: Session | null,
   status: "authenticated" | "loading" | "unauthenticated",
   socket: AppSocket | null,
-  isConnected: boolean
+  isConnected: boolean,
+  privateChatId?: null | string
 }) => {
 
   const [messages, setMessages] = useState<any[]>([]);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true)
-  const { privateChatId } = useParams<{ privateChatId: string }>();
+  let privateChatId
+  if (!CprivateChatId) {
+    const { privateChatId: PId } = useParams<{ privateChatId: string }>();
+    privateChatId = PId
+  } else (
+    privateChatId = CprivateChatId
+  )
+
+  if (!privateChatId) {
+    alert("error: no priavet Chat Id")
+  }
+
   const [joined, setJoined] = useState<{ joined: boolean; message: string }>({
     joined: false,
     message: "",
   });
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSendMessageAction = async (formData: FormData) => {
