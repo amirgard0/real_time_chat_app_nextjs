@@ -1,6 +1,7 @@
 // src/components/custom/chatBox.tsx
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./messageBubble";
+import { prisma } from "@/lib/prisma";
 
 export const ChatBox = ({ messages, username }: { messages: any[]; username: string }) => {
   const chatRef = useRef<HTMLDivElement>(null);
@@ -10,7 +11,6 @@ export const ChatBox = ({ messages, username }: { messages: any[]; username: str
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages]);
-
   return (
     <div
       ref={chatRef}

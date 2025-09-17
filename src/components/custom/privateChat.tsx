@@ -9,7 +9,7 @@ import { useSocket } from "@/hooks/useSocket";
 import { Link } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DefaultEventsMap } from "socket.io";
 import { Socket } from "socket.io-client";
@@ -85,6 +85,7 @@ export const PrivateChat = ({
   const [messages, setMessages] = useState<any[]>([]);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true)
+  const searchParams = useSearchParams()
   let privateChatId
   if (!CprivateChatId) {
     const { privateChatId: PId } = useParams<{ privateChatId: string }>();
@@ -92,6 +93,8 @@ export const PrivateChat = ({
   } else (
     privateChatId = CprivateChatId
   )
+  const lastSeen = searchParams.get("lastSeen")
+  const targetUsername = searchParams.get("targetUsername")
 
   if (!privateChatId) {
     alert("error: no priavet Chat Id")
@@ -194,11 +197,8 @@ export const PrivateChat = ({
     <Card className="p-4 shadow-lg">
       <CardTitle>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">Chat Room</h1>
-          <div
-            className={`w-3 h-3 ${isConnected ? "bg-green-600" : "bg-red-600"} rounded-full`}
-            title={isConnected ? "Connected" : "Disconnected"}
-          ></div>
+          <h1 className="text-2xl font-bold">{targetUsername}</h1>
+          <p>lastseen: {lastSeen}</p>
         </div>
       </CardTitle>
       <CardContent className="min-h-[400px]">
