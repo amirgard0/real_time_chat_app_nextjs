@@ -18,10 +18,20 @@ export async function POST(req: NextRequest) {
     const existingUser = await prisma.user.findUnique({
       where: { email }
     })
+    const existingPublicId = await prisma.user.findUnique({
+      where: { publicId }
+    })
 
     if (existingUser) {
       return NextResponse.json(
         { error: 'User already exists with this email' },
+        { status: 400 }
+      )
+    }
+
+    if (existingPublicId) {
+      return NextResponse.json(
+        { error: 'User already exists with this publicId' },
         { status: 400 }
       )
     }
