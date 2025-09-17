@@ -34,6 +34,8 @@ const Navbar = () => {
     { href: "/chat", label: "Chat" },
     { href: "/group/create", label: "Create Group" },
     { href: "/group/find", label: "Find Groups" },
+    { href: "/private/create", label: "find users" },
+    { href: "/private/chats", label: "private chats" }
   ]
 
   const handleSignOut = async () => {
