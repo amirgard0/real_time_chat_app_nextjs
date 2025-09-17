@@ -33,6 +33,6 @@ export async function handleChatAction(formData: FormData) {
     console.error()
   }
   if (chat) {
-    redirect("/private/chat/" + chat.id, RedirectType.replace)
+    redirect("/private/chats?privateChatId=" + chat.id, RedirectType.replace)
   }
 }
