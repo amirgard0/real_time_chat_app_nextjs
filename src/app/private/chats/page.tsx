@@ -10,7 +10,7 @@ const handleChatAction = async (formData: FormData) => {
   const chatId = formData.get("chatId") as string
   const lastSeen = formData.get("lastSeen") as string
   const targetUsername = formData.get("targetUsername") as string
-  redirect(`?privateChatId=${chatId}&lastSeen=${lastSeen}&targetUsername=${targetUsername}`)
+  redirect(`/private/chats/?privateChatId=${chatId}&lastSeen=${lastSeen}&targetUsername=${targetUsername}`)
 }
 
 async function getHumanReadableTimeDistance(targetDate: Date | string | number) {
@@ -66,26 +66,36 @@ export default async () => {
       }
     }
   })
+
+  const chatCard = await Promise.all(
+    chats.map(async (chat) => {
+      const users = [{ userId: chat.user1Id, username: chat.user1.name, user: chat.user1 }, { userId: chat.user2Id, username: chat.user2.name, user: chat.user2 }]
+      const other = users.filter((id) => id.userId != session?.user?.id)[0]
+      if (!other) return
+      const lastSeen = other.user.lastSeen ? await getHumanReadableTimeDistance(other.user.lastSeen) : "unknown"
+      return { chat, lastSeen, other }
+    })
+  )
+
   return <div className="flex gap-2">
     <div className="flex flex-col p-5 w-[20%] gap-2">
       {
-        chats.map(async (chat) => {
-          const users = [{ userId: chat.user1Id, username: chat.user1.name, user: chat.user1 }, { userId: chat.user2Id, username: chat.user2.name, user: chat.user2 }]
-          const other = users.filter((id) => id.userId != session?.user?.id)[0]
-          if (!other) return
-          const lastSeen = other.user.lastSeen ? await getHumanReadableTimeDistance(other.user.lastSeen) : "unknown"
-          return <Card key={chat.id} className="p-2 gap-2">
-            <h6 className="text-sm m-0 p-0 font-semibold flex justify-between">{other.username} <p className="opacity-55">{other.user.isOnline ? "online" : "offline"}</p></h6>
+        chatCard.map((item) => {
+          if (!item) {
+            return
+          }
+          return <Card key={item.chat.id} className="p-2 gap-2">
+            <h6 className="text-sm m-0 p-0 font-semibold flex justify-between">{item.other.username} <p className="opacity-55">{item.other.user.isOnline ? "online" : "offline"}</p></h6>
             <div className="flex">
               <p className="px-2 opacity-70">
-                {chat.messages[0].content.slice(0, 15)}
+                {item.chat.messages[0].content.slice(0, 15)}
               </p>
-              <small>{chat.messages[0].createdAt.getHours()}:{chat.messages[0].createdAt.getMinutes()}</small>
+              <small>{item.chat.messages[0].createdAt.getHours()}:{item.chat.messages[0].createdAt.getMinutes()}</small>
             </div>
             <form action={handleChatAction}>
-              <input type="hidden" value={chat.id} name="chatId" />
-              <input type="hidden" value={lastSeen} name="lastSeen" />
-              <input type="hidden" value={other.user.name!} name="targetUsername" />
+              <input type="hidden" value={item.chat.id} name="chatId" />
+              <input type="hidden" value={item.lastSeen} name="lastSeen" />
+              <input type="hidden" value={item.other.user.name!} name="targetUsername" />
               <Button type="submit">Chat</Button>
             </form>
           </Card>

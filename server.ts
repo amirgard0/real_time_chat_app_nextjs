@@ -1,4 +1,4 @@
-// server/socket-server.ts
+// server.ts
 import { Server } from "socket.io";
 import http from "http";
 import { PrismaClient } from "@/generated/prisma";

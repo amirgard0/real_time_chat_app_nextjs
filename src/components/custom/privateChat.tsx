@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSocket } from "@/hooks/useSocket";
 import { Link } from "lucide-react";
 import { Session } from "next-auth";
-import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DefaultEventsMap } from "socket.io";
@@ -84,7 +82,9 @@ export const PrivateChat = ({
 
   const [messages, setMessages] = useState<any[]>([]);
   const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true)
+  const messagesRef = useRef<any[]>([])
+
+  // const [loading, setLoading] = useState(true)
   const searchParams = useSearchParams()
   let privateChatId
   if (!CprivateChatId) {
@@ -97,7 +97,7 @@ export const PrivateChat = ({
   const targetUsername = searchParams.get("targetUsername")
 
   if (!privateChatId) {
-    alert("error: no priavet Chat Id")
+    toast.error("no private chat Id")
   }
 
   const [joined, setJoined] = useState<{ joined: boolean; message: string }>({
@@ -130,7 +130,7 @@ export const PrivateChat = ({
       socket.emit("joinPrivateChat", privateChatId, (response: any) => {
         if (response.status === "ok") {
           setJoined({ joined: true, message: "good" });
-          console.log(response)
+          messagesRef.current = response.messages
           setMessages(response.messages)
         } else if (response.status === "not found") {
           setJoined({ joined: false, message: "not found" });
@@ -143,7 +143,7 @@ export const PrivateChat = ({
     handleJoin();
 
     return () => {
-      socket.emit("leaveGroup", privateChatId);
+      socket.emit("leaveGroup", "privateChat" + privateChatId);
     };
   }, [socket, privateChatId]);
 
@@ -153,7 +153,8 @@ export const PrivateChat = ({
 
     // Add the event listener
     socket.on("newPrivateMessage", (msg: any) => {
-      setMessages((prev) => [...prev, msg]);
+      messagesRef.current.push(msg)
+      setMessages([...messagesRef.current]);
     });
 
     // Cleanup: remove the specific listener
@@ -162,11 +163,13 @@ export const PrivateChat = ({
     };
   }, [socket]);
 
-  useEffect(() => {
-    if (status != "loading") {
-      setLoading(false)
-    }
-  }, [status])
+  // useEffect(() => {
+  //   if (status != "loading") {
+  //     setLoading(false)
+  //   }
+  // }, [status])
+  const loading = status === "loading"
+
 
   if (loading) {
     return <ChatSkeleton />
