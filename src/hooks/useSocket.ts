@@ -51,7 +51,7 @@ export const useSocket = (session: any) => {
         setIsConnected(false);
       }
     };
-  }, [session]);
+  }, [session?.user?.id]);
 
   return { socket, isConnected };
 };

@@ -13,6 +13,7 @@ export default function Register() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [publicId, setPublicId] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -34,6 +35,11 @@ export default function Register() {
       return
     }
 
+    if (!(publicId[0] == "@")) {
+      setError('pulbicId must start with "@"')
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -43,7 +49,7 @@ export default function Register() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, publicId }),
       })
 
       const data = await response.json()
@@ -131,6 +137,20 @@ export default function Register() {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="publicId">Public id</Label>
+              <Input
+                id="publicId"
+                name="publicId"
+                type="text"
+                required
+                placeholder="publicId"
+                value={publicId}
+                onChange={(e) => setPublicId(e.target.value)}
                 disabled={isLoading}
               />
             </div>

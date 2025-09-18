@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json()
+    const { name, email, password, publicId } = await req.json()
 
     // Validate input
     if (!name || !email || !password) {
@@ -18,10 +18,20 @@ export async function POST(req: NextRequest) {
     const existingUser = await prisma.user.findUnique({
       where: { email }
     })
+    const existingPublicId = await prisma.user.findUnique({
+      where: { publicId }
+    })
 
     if (existingUser) {
       return NextResponse.json(
         { error: 'User already exists with this email' },
+        { status: 400 }
+      )
+    }
+
+    if (existingPublicId) {
+      return NextResponse.json(
+        { error: 'User already exists with this publicId' },
         { status: 400 }
       )
     }
@@ -32,7 +42,8 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        publicId: publicId
       }
     })
 
@@ -42,7 +53,8 @@ export async function POST(req: NextRequest) {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name
+          name: user.name,
+          publicId: publicId
         }
       },
       { status: 201 }

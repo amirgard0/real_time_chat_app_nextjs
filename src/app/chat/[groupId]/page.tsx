@@ -1,28 +1,29 @@
-// src/app/chat/page.tsx or src/pages/chat.tsx
+// src/app/chat/page.tsx or src/pages/[groupId]/chat.tsx
 "use client";
 
 import { useSession } from "next-auth/react";
 import { useSocket } from "@/hooks/useSocket";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardAction, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChatBox } from "@/components/custom/chatBox";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { notFound, useParams, useRouter } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
+import Link from "next/link";
+import { toast } from "sonner";
 
 function ChatSkeleton() {
   return (
-    <div className="p-4">
-      <Card className="p-2">
+    <div className="p-4 max-w-3xl mx-auto">
+      <Card className="p-4 shadow-lg">
         <CardTitle>
           <div className="flex items-center gap-2">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="w-3 h-3 rounded-full" />
+            <Skeleton className="h-6 w-32 animate-pulse" />
+            <Skeleton className="w-3 h-3 rounded-full animate-pulse" />
           </div>
         </CardTitle>
         <CardContent className="space-y-4 min-h-[400px]">
-          {/* Alternating message skeletons to simulate real chat */}
           {Array.from({ length: 8 }).map((_, index) => (
             <div
               key={index}
@@ -30,11 +31,11 @@ function ChatSkeleton() {
             >
               <div className="max-w-xs">
                 <div className="flex items-center gap-2 mb-1">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-4 w-20 animate-pulse" />
+                  <Skeleton className="h-3 w-16 animate-pulse" />
                 </div>
                 <Skeleton
-                  className={`h-16 rounded-lg ${index % 2 === 0 ? "w-48" : "w-40"}`}
+                  className={`h-16 rounded-lg animate-pulse ${index % 2 === 0 ? "w-48" : "w-40"}`}
                 />
               </div>
             </div>
@@ -42,11 +43,23 @@ function ChatSkeleton() {
         </CardContent>
         <CardAction className="w-full">
           <div className="flex w-full gap-2">
-            <Skeleton className="h-10 flex-1" />
-            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-10 flex-1 animate-pulse" />
+            <Skeleton className="h-10 w-20 animate-pulse" />
           </div>
         </CardAction>
       </Card>
+    </div>
+  );
+}
+
+function GroupNotFound() {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h1 className="text-2xl font-bold">Group Not Found</h1>
+      <p className="text-muted-foreground mt-2">The chat group you're trying to access doesn't exist.</p>
+      <Link href="/" className="mt-4 text-blue-600 hover:underline">
+        Return to Home
+      </Link>
     </div>
   );
 }
@@ -55,34 +68,44 @@ export default function ChatPage() {
   const { data: session, status } = useSession();
   const { socket, isConnected } = useSocket(session);
   const [messages, setMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true)
-  const { groupId } = useParams<{ groupId: string }>()
-  const [joined, setJoined] = useState<{ joined: boolean, message: string }>({ joined: false, message: "" })
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const { groupId } = useParams<{ groupId: string }>();
+  const [joined, setJoined] = useState<{ joined: boolean; message: string }>({
+    joined: false,
+    message: "",
+  });
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!socket || !groupId) return;
 
     const handleJoin = () => {
       socket.emit("joinGroup", groupId, (response: any) => {
-        console.log(response)
-        if (response.status === "ok") setJoined({ joined: true, message: "good" });
-        else if (response.status === "not found") { setJoined({ joined: false, message: "not found" }) }
-        else alert("Error joining group");
+        console.log(response);
+        if (response.status === "ok") {
+          setJoined({ joined: true, message: "good" });
+          // toast.success("Joined group successfully!");
+        } else if (response.status === "not found") {
+          setJoined({ joined: false, message: "not found" });
+        } else {
+          toast.error("Failed to join group");
+        }
       });
     };
 
     handleJoin();
 
     return () => {
-      socket.emit("leaveGroup", groupId); // ✅ Clean up
+      socket.emit("leaveGroup", groupId);
     };
-  }, [socket, groupId]);
+  }, [socket, groupId, toast]);
 
   useEffect(() => {
-    if (status != "loading") {
-      setLoading(false)
+    if (status !== "loading") {
+      setLoading(false);
     }
-  }, [status])
+  }, [status]);
 
   useEffect(() => {
     if (!socket) return;
@@ -96,65 +119,111 @@ export default function ChatPage() {
     });
 
     socket.on("command", (messages) => {
-      setMessages(messages)
-    })
+      setMessages(messages);
+    });
 
     return () => {
       socket.off("recentMessages");
       socket.off("newMessage");
+      socket.off("command");
     };
   }, [socket]);
 
-  // const handleSendMessage = () => {
-  //   if (!socket) return;
-  //   const content = prompt("Enter message:");
-  //   if (content) {
-  //     socket.emit("sendMessage", { content });
-  //   }
-  // };
-
-  const handleSendMessageAction = (formData: FormData, socket: any) => {
-    if (!socket) return;
-    const content = formData.get("message") as string
-    if (!content) {
-      return
+  const handleSendMessageAction = async (formData: FormData) => {
+    if (!socket || !inputRef.current) return;
+    const content = formData.get("message") as string;
+    if (!content.trim()) {
+      return;
     }
-    socket.emit("sendMessage", { content, groupId })
-  }
+    setSending(true);
+    socket.emit("sendMessage", { content, groupId }, (response: any) => {
+      setSending(false);
+      inputRef.current!.value = "";
+      if (response?.status === "error") {
+        toast.error("Failed to send message");
+      }
+    });
+  };
 
   if (loading) {
-    return <ChatSkeleton />
-  } else if (status == "unauthenticated") {
-    return <div>
-      unauthenticated
-    </div>
+    return <ChatSkeleton />;
   }
 
+  if (status === "unauthenticated") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg">Please sign in to access the chat.</p>
+      </div>
+    );
+  }
 
   if (!session?.user?.name) {
-    return <div>
-      error: no username
-    </div>
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg">Error: Username not found.</p>
+      </div>
+    );
   }
-  if (joined.message == "not found") {
-    return notFound()
+
+  if (joined.message === "not found") {
+    return <GroupNotFound />;
   }
 
   return (
-    <div className="p-4">
-      <Card className="p-2">
+    <div className="p-4 max-w-3xl mx-auto">
+      <Card className="p-4 shadow-lg">
         <CardTitle>
-          <div className="flex">
-            <h1>Chat Room</h1> <div className={`w-3 h-3 ${isConnected ? "bg-green-600" : "bg-red-600"} rounded-full mt-1`}></div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Chat Room</h1>
+            <div
+              className={`w-3 h-3 ${isConnected ? "bg-green-600" : "bg-red-600"} rounded-full`}
+              title={isConnected ? "Connected" : "Disconnected"}
+            ></div>
           </div>
         </CardTitle>
-        <CardContent>
+        <CardContent className="min-h-[400px]">
           <ChatBox messages={messages} username={session?.user?.name} />
         </CardContent>
         <CardAction className="w-full">
-          <form action={(formData: FormData) => { handleSendMessageAction(formData, socket) }} className="flex w-full">
-            <Input placeholder="message" className="w-full" name="message" />
-            <Button>Send</Button>
+          <form
+            action={handleSendMessageAction}
+            className="flex w-full gap-2"
+          // onKeyDown={handleKeyPress}
+          >
+            <Input
+              placeholder="Type a message..."
+              className="w-full"
+              name="message"
+              ref={inputRef}
+              aria-label="Message input"
+              disabled={sending}
+            />
+            <Button disabled={sending} aria-label="Send message">
+              {sending ? (
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                "Send"
+              )}
+            </Button>
           </form>
         </CardAction>
       </Card>
