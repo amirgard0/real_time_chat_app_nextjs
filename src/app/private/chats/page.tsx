@@ -10,7 +10,8 @@ const handleChatAction = async (formData: FormData) => {
   const chatId = formData.get("chatId") as string
   const lastSeen = formData.get("lastSeen") as string
   const targetUsername = formData.get("targetUsername") as string
-  redirect(`/private/chats/?privateChatId=${chatId}&lastSeen=${lastSeen}&targetUsername=${targetUsername}`)
+  const targetUserId = formData.get("targetUserId") as string
+  redirect(`/private/chats/?privateChatId=${chatId}&lastSeen=${lastSeen}&targetUsername=${targetUsername}&targetUserId=${targetUserId}`)
 }
 
 async function getHumanReadableTimeDistance(targetDate: Date | string | number) {
@@ -85,7 +86,7 @@ export default async () => {
             return
           }
           return <Card key={item.chat.id} className="p-2 gap-2">
-            <h6 className="text-sm m-0 p-0 font-semibold flex justify-between">{item.other.username} <p className="opacity-55">{item.other.user.isOnline ? "online" : "offline"}</p></h6>
+            <h6 className="text-sm m-0 p-0 font-semibold flex justify-between">{item.other.username}</h6>
             <div className="flex">
               <p className="px-2 opacity-70">
                 {item.chat.messages[0].content.slice(0, 15)}
@@ -95,6 +96,7 @@ export default async () => {
             <form action={handleChatAction}>
               <input type="hidden" value={item.chat.id} name="chatId" />
               <input type="hidden" value={item.lastSeen} name="lastSeen" />
+              <input type="hidden" value={item.other.userId} name="targetUserId" />
               <input type="hidden" value={item.other.user.name!} name="targetUsername" />
               <Button type="submit">Chat</Button>
             </form>

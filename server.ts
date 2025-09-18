@@ -53,10 +53,23 @@ io.on("connection", async (socket) => {
       id: userId
     },
     data: {
-      lastSeen: new Date(Date.now()),
       isOnline: true
     }
+  }).then((user) => {
+    io.to("onlineStatus" + userId).emit("onlineStatus", user.isOnline)
   })
+
+  socket.on("joinOnlineStatus", async (userId, callback) => {
+    socket.join("onlineStatus" + userId)
+    if (typeof callback == "function") {
+      const isOnlineStatus = (await prisma.user.findUnique({ where: { id: userId }, select: { isOnline: true } }))?.isOnline
+      callback(isOnlineStatus)
+    }
+  })
+  socket.on("leaveOnlineStatus", (userId) => {
+    socket.leave("onlineStatus" + userId)
+  })
+
 
   // Join global room by default
   socket.join("global");
@@ -366,11 +379,15 @@ io.on("connection", async (socket) => {
     if (socket.data.currentRoom !== "global") {
       console.log(`Left room: ${socket.data.currentRoom}`);
     }
-    await prisma.user.update({
+    prisma.user.update({
       where: { id: userId },
       data: {
-        isOnline: false
+        isOnline: false,
+        lastSeen: new Date(Date.now())
       }
+    }).then((getedUser) => {
+      io.to("onlineStatus" + userId).emit("onlineStatus", false)
+      console.log(getedUser.name + " status: " + getedUser.isOnline)
     })
   });
 });

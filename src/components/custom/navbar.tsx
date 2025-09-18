@@ -120,14 +120,6 @@ const Navbar = () => {
                     </p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => handleNavigation("/profile")}>
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => handleNavigation("/settings")}>
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={handleSignOut}>
                   Sign out
                 </DropdownMenuItem>

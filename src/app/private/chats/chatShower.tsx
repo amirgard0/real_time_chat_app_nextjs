@@ -11,9 +11,7 @@ export const ChatShower = () => {
   const searchParams = useSearchParams()
   const privateChatId = searchParams.get("privateChatId")
   if (!privateChatId) {
-    return <div>
-      not found the vale
-    </div>
+    return
   }
   return <div>
     <PrivateChat isConnected={isConnected} status={status} socket={socket} session={session} privateChatId={privateChatId} />

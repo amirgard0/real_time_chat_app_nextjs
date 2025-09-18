@@ -82,6 +82,7 @@ export const PrivateChat = ({
 
   const [messages, setMessages] = useState<any[]>([]);
   const [sending, setSending] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
   const messagesRef = useRef<any[]>([])
 
   // const [loading, setLoading] = useState(true)
@@ -95,7 +96,7 @@ export const PrivateChat = ({
   )
   const lastSeen = searchParams.get("lastSeen")
   const targetUsername = searchParams.get("targetUsername")
-
+  const targetUserId = searchParams.get("targetUserId")
   if (!privateChatId) {
     toast.error("no private chat Id")
   }
@@ -139,11 +140,17 @@ export const PrivateChat = ({
         }
       });
     };
+    socket.emit("joinOnlineStatus", targetUserId, (isOnline: boolean | undefined) => {
+      if (typeof isOnline == "boolean") {
+        setIsOnline(isOnline)
+      }
+    })
 
     handleJoin();
 
     return () => {
       socket.emit("leaveGroup", "privateChat" + privateChatId);
+      socket.emit("leaveOnlineStatus", targetUserId)
     };
   }, [socket, privateChatId]);
 
@@ -157,17 +164,16 @@ export const PrivateChat = ({
       setMessages([...messagesRef.current]);
     });
 
+    socket.on("onlineStatus", (isOnline: boolean) => {
+      setIsOnline(isOnline)
+    })
+
     // Cleanup: remove the specific listener
     return () => {
       socket.off("newPrivateMessage");
     };
   }, [socket]);
 
-  // useEffect(() => {
-  //   if (status != "loading") {
-  //     setLoading(false)
-  //   }
-  // }, [status])
   const loading = status === "loading"
 
 
@@ -201,7 +207,10 @@ export const PrivateChat = ({
       <CardTitle>
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">{targetUsername}</h1>
-          <p>lastseen: {lastSeen}</p>
+          {
+            isOnline ? <div className="text-green-500">Online</div> :
+              <p>lastseen: {lastSeen}</p>
+          }
         </div>
       </CardTitle>
       <CardContent className="min-h-[400px]">
