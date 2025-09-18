@@ -73,8 +73,6 @@ io.on("connection", async (socket) => {
 
   // Join global room by default
   socket.join("global");
-
-
   // Send recent global messages on connect
   socket.on("globalMessages", async () => {
     try {
@@ -390,6 +388,7 @@ io.on("connection", async (socket) => {
       console.log(getedUser.name + " status: " + getedUser.isOnline)
     })
   });
+
 });
 
 httpServer.listen(port, () => {

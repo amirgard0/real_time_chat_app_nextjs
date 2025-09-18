@@ -59,12 +59,20 @@ export default function ChatPage() {
   const { socket, isConnected } = useSocket(session);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const groupId = "cmfl1kjjz0000tk7wi65go10w";
+  const [groupId, setGroupId] = useState<null | string>(null);
   const [joined, setJoined] = useState<{ joined: boolean; message: string }>({
     joined: false,
     message: "",
   });
   const sendForm = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    fetch("/api/group/global/get", { method: "GET" }).then((object) => {
+      object.json().then((JSON) => {
+        setGroupId(JSON.id)
+      })
+    })
+  }, [])
 
   useEffect(() => {
     if (!socket || !groupId) return;
@@ -168,7 +176,6 @@ export default function ChatPage() {
               )}
             </div>
           </div>
-          <span className="text-sm text-muted-foreground">{groupId.slice(-6)}</span>
         </CardTitle>
 
         <CardContent className="flex-1 p-0 overflow-hidden">
