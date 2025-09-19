@@ -1,3 +1,5 @@
+//src/app/private/chats/page.tsx
+
 import { Card } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -78,34 +80,58 @@ export default async () => {
     })
   )
 
-  return <div className="flex gap-2">
-    <div className="flex flex-col p-5 w-[20%] gap-2">
-      {
-        chatCard.map((item) => {
-          if (!item) {
-            return
-          }
-          return <Card key={item.chat.id} className="p-2 gap-2">
-            <h6 className="text-sm m-0 p-0 font-semibold flex justify-between">{item.other.username}</h6>
-            <div className="flex">
-              <p className="px-2 opacity-70">
-                {item.chat.messages[0].content.slice(0, 15)}
-              </p>
-              <small>{item.chat.messages[0].createdAt.getHours()}:{item.chat.messages[0].createdAt.getMinutes()}</small>
+  if (chatCard.length <= 0) {
+    return <div className="p-7">
+      not any chats yet
+    </div>
+  }
+
+  return (
+    <div className="flex flex-col lg:flex-row gap-4 p-2 sm:p-4 md:p-6">
+      <div className="w-full lg:w-[300px] xl:w-[350px] flex-shrink-0">
+        <div className="flex flex-col gap-2">
+          {chatCard.length <= 0 ? (
+            <div className="p-4 text-center text-muted-foreground">
+              No chats yet
             </div>
-            <form action={handleChatAction}>
-              <input type="hidden" value={item.chat.id} name="chatId" />
-              <input type="hidden" value={item.lastSeen} name="lastSeen" />
-              <input type="hidden" value={item.other.userId} name="targetUserId" />
-              <input type="hidden" value={item.other.user.name!} name="targetUsername" />
-              <Button type="submit">Chat</Button>
-            </form>
-          </Card>
-        })
-      }
+          ) : (
+            chatCard.map((item) => {
+              if (!item) return null;
+              const lastMessage = item.chat.messages[0]
+              return (
+                <Card key={item.chat.id} className="p-3 gap-2 hover:bg-accent transition-colors">
+                  <h6 className="text-sm font-semibold flex justify-between items-center">
+                    <span className="truncate">{item.other.username}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {lastMessage && `${lastMessage.createdAt.getHours()}:${lastMessage.createdAt.getMinutes().toString().padStart(2, '0')}`}
+                    </span>
+                  </h6>
+                  {lastMessage && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {lastMessage.content.slice(0, 30)}
+                      {lastMessage.content.length > 30 && '...'}
+                    </p>
+                  )}
+                  <form action={handleChatAction} className="mt-2">
+                    <input type="hidden" value={item.chat.id} name="chatId" />
+                    <input type="hidden" value={item.lastSeen} name="lastSeen" />
+                    <input type="hidden" value={item.other.userId} name="targetUserId" />
+                    <input type="hidden" value={item.other.user.name!} name="targetUsername" />
+                    <Button type="submit" size="sm" className="w-full">
+                      Open Chat
+                    </Button>
+                  </form>
+                </Card>
+              )
+            })
+          )}
+        </div>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="bg-background rounded-lg border">
+          <ChatShower />
+        </div>
+      </div>
     </div>
-    <div className="p-5 w-full">
-      <ChatShower />
-    </div>
-  </div >
+  )
 }

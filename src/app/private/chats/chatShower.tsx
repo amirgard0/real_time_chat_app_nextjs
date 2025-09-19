@@ -1,3 +1,5 @@
+//src/app/private/chats/chatShower.tsx
+
 "use client"
 
 import { PrivateChat } from "@/components/custom/privateChat";
@@ -11,9 +13,19 @@ export const ChatShower = () => {
   const searchParams = useSearchParams()
   const privateChatId = searchParams.get("privateChatId")
   if (!privateChatId) {
-    return
+    return <div className="flex items-center justify-center h-96 text-muted-foreground">
+      <p className="text-lg">Select a chat to start messaging</p>
+    </div>
   }
-  return <div>
-    <PrivateChat isConnected={isConnected} status={status} socket={socket} session={session} privateChatId={privateChatId} />
-  </div>
+  return (
+    <div className="w-full">
+      <PrivateChat
+        isConnected={isConnected}
+        status={status}
+        socket={socket}
+        session={session}
+        privateChatId={privateChatId}
+      />
+    </div>
+  );
 }

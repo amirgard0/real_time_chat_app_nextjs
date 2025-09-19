@@ -1,3 +1,5 @@
+//src/components/custom/privateChat.tsx
+
 "use client"
 
 import { ChatBox } from "@/components/custom/chatBox";
@@ -15,15 +17,15 @@ import { toast } from "sonner";
 
 function ChatSkeleton() {
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <Card className="p-4 shadow-lg">
-        <CardTitle>
+    <div className="p-2 sm:p-4 max-w-3xl mx-auto w-full">
+      <Card className="p-2 sm:p-4 shadow-lg">
+        <CardTitle className="px-2 sm:px-4">
           <div className="flex items-center gap-2">
             <Skeleton className="h-6 w-32 animate-pulse" />
             <Skeleton className="w-3 h-3 rounded-full animate-pulse" />
           </div>
         </CardTitle>
-        <CardContent className="space-y-4 min-h-[400px]">
+        <CardContent className="space-y-4 min-h-[300px] sm:min-h-[400px] p-2 sm:p-4">
           {Array.from({ length: 8 }).map((_, index) => (
             <div
               key={index}
@@ -41,7 +43,7 @@ function ChatSkeleton() {
             </div>
           ))}
         </CardContent>
-        <CardAction className="w-full">
+        <CardAction className="w-full p-2 sm:p-4">
           <div className="flex w-full gap-2">
             <Skeleton className="h-10 flex-1 animate-pulse" />
             <Skeleton className="h-10 w-20 animate-pulse" />
@@ -54,10 +56,12 @@ function ChatSkeleton() {
 
 function ChatNotFound() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl font-bold">chat Not Found</h1>
-      <p className="text-muted-foreground mt-2">The chat you're trying to access doesn't exist.</p>
-      <Link href="/" className="mt-4 text-blue-600 hover:underline">
+    <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
+      <h1 className="text-xl sm:text-2xl font-bold">Chat Not Found</h1>
+      <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+        The chat you're trying to access doesn't exist.
+      </p>
+      <Link href="/" className="mt-4 text-primary hover:underline text-sm sm:text-base">
         Return to Home
       </Link>
     </div>
@@ -140,11 +144,15 @@ export const PrivateChat = ({
         }
       });
     };
-    socket.emit("joinOnlineStatus", targetUserId, (isOnline: boolean | undefined) => {
-      if (typeof isOnline == "boolean") {
-        setIsOnline(isOnline)
-      }
-    })
+    if (targetUserId) {
+      socket.emit("joinOnlineStatus", targetUserId, (isOnline: boolean | undefined) => {
+        if (typeof isOnline == "boolean") {
+          setIsOnline(isOnline)
+        }
+      })
+    } else {
+      toast.warning("please use the chat buttons to load the chat instead of urls.")
+    }
 
     handleJoin();
 
@@ -183,16 +191,16 @@ export const PrivateChat = ({
 
   if (status === "unauthenticated") {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg">Please sign in to access the chat.</p>
+      <div className="flex items-center justify-center h-screen p-4">
+        <p className="text-base sm:text-lg">Please sign in to access the chat.</p>
       </div>
     );
   }
 
   if (!session?.user?.name) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg">Error: Username not found.</p>
+      <div className="flex items-center justify-center h-screen p-4">
+        <p className="text-base sm:text-lg">Error: Username not found.</p>
       </div>
     );
   }
@@ -202,61 +210,70 @@ export const PrivateChat = ({
   }
 
 
-  return <div>
-    <Card className="p-4 shadow-lg">
-      <CardTitle>
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">{targetUsername}</h1>
-          {
-            isOnline ? <div className="text-green-500">Online</div> :
-              <p>lastseen: {lastSeen}</p>
-          }
-        </div>
-      </CardTitle>
-      <CardContent className="min-h-[400px]">
-        <ChatBox messages={messages} username={session?.user?.name} />
-      </CardContent>
-      <CardAction className="w-full">
-        <form
-          action={handleSendMessageAction}
-          className="flex w-full gap-2"
-        >
-          <Input
-            placeholder="Type a message..."
-            className="w-full"
-            name="message"
-            ref={inputRef}
-            aria-label="Message input"
-            disabled={sending}
-          />
-          <Button disabled={sending} aria-label="Send message">
-            {sending ? (
-              <svg
-                className="animate-spin h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-            ) : (
-              "Send"
-            )}
-          </Button>
-        </form>
-      </CardAction>
-    </Card>
-  </div>
+  return (
+    <div className="w-full">
+      <Card className="p-2 sm:p-4 shadow-lg w-full">
+        <CardTitle className="px-2 sm:px-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold">{targetUsername}</h1>
+            <div className="text-sm sm:text-base">
+              {isOnline ? (
+                <span className="text-green-600">Online</span>
+              ) : (
+                <span className="text-muted-foreground">Last seen: {lastSeen}</span>
+              )}
+            </div>
+          </div>
+        </CardTitle>
+        <CardContent className="min-h-[300px] sm:min-h-[400px] p-2 sm:p-4">
+          <ChatBox messages={messages} username={session?.user?.name} />
+        </CardContent>
+        <CardAction className="w-full p-2 sm:p-4 pt-0">
+          <form
+            action={handleSendMessageAction}
+            className="flex w-full gap-2 flex-col sm:flex-row"
+          >
+            <Input
+              placeholder="Type a message..."
+              className="w-full"
+              name="message"
+              ref={inputRef}
+              aria-label="Message input"
+              disabled={sending}
+            />
+            <Button
+              disabled={sending}
+              aria-label="Send message"
+              className="w-full sm:w-auto"
+            >
+              {sending ? (
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                "Send"
+              )}
+            </Button>
+          </form>
+        </CardAction>
+      </Card>
+    </div>
+  )
 }

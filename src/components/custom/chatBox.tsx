@@ -1,7 +1,6 @@
 // src/components/custom/chatBox.tsx
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./messageBubble";
-import { prisma } from "@/lib/prisma";
 
 export const ChatBox = ({ messages, username }: { messages: any[]; username: string }) => {
   const chatRef = useRef<HTMLDivElement>(null);
@@ -14,26 +13,32 @@ export const ChatBox = ({ messages, username }: { messages: any[]; username: str
   return (
     <div
       ref={chatRef}
-      className="bg-muted p-4 rounded-xl flex flex-col gap-2 max-h-[400px] overflow-y-auto"
+      className="bg-muted p-3 sm:p-4 rounded-lg flex flex-col gap-3 max-h-[300px] sm:max-h-[400px] overflow-y-auto"
       role="log"
       aria-live="polite"
     >
-      {messages.map((msg) => {
-        let inMessageUserName
-        if (msg.user) {
-          inMessageUserName = msg.user.name
-        } else if (msg.sender) {
-          inMessageUserName = msg.sender.name
-        } else {
-          return
-        }
-        const isUsers = inMessageUserName === username
-        return (
-          <div key={msg.id} className={`flex ${isUsers ? "justify-end" : "justify-start"}`}>
-            <MessageBubble message={msg} isUsers={isUsers} inMessageUsername={inMessageUserName} />
-          </div>
-        );
-      })}
+      {messages.length === 0 ? (
+        <div className="flex items-center justify-center h-full text-muted-foreground">
+          <p>No messages yet</p>
+        </div>
+      ) : (
+        messages.map((msg) => {
+          let inMessageUserName
+          if (msg.user) {
+            inMessageUserName = msg.user.name
+          } else if (msg.sender) {
+            inMessageUserName = msg.sender.name
+          } else {
+            return null;
+          }
+          const isUsers = inMessageUserName === username
+          return (
+            <div key={msg.id} className={`flex ${isUsers ? "justify-end" : "justify-start"}`}>
+              <MessageBubble message={msg} isUsers={isUsers} inMessageUsername={inMessageUserName} />
+            </div>
+          );
+        })
+      )}
     </div>
   );
 };
