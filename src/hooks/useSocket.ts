@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_SERVER_URL = "http://localhost:4000"; // Match your socket server port
+const SOCKET_SERVER_URL = "http://192.168.1.106:4000"; // Match your socket server port
 
 export const useSocket = (session: any) => {
   const [socket, setSocket] = useState<Socket | null>(null);

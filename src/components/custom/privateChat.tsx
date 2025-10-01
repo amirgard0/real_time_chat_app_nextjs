@@ -172,10 +172,17 @@ export const PrivateChat = ({
       setMessages([...messagesRef.current]);
     });
 
+    socket.on("seen", () => {
+      messagesRef.current = messagesRef.current.map((msg) => {
+        msg.isRead = true
+        return msg
+      })
+      setMessages([...messagesRef.current]);
+    })
+
     socket.on("onlineStatus", (isOnline: boolean) => {
       setIsOnline(isOnline)
     })
-
     // Cleanup: remove the specific listener
     return () => {
       socket.off("newPrivateMessage");
@@ -226,7 +233,7 @@ export const PrivateChat = ({
           </div>
         </CardTitle>
         <CardContent className="min-h-[300px] sm:min-h-[400px] p-2 sm:p-4">
-          <ChatBox messages={messages} username={session?.user?.name} />
+          <ChatBox messages={messages} username={session?.user?.name} isOnlineReading={isOnline} />
         </CardContent>
         <CardAction className="w-full p-2 sm:p-4 pt-0">
           <form

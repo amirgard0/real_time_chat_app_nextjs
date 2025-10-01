@@ -179,13 +179,23 @@ io.on("connection", async (socket) => {
         take: 100
       })
 
+      await prisma.privateMessage.updateMany({
+        where: {
+          chatId: privateChatId,
+          senderId: { not: userId }
+        },
+        data: {
+          isRead: true
+        }
+      })
+
+      io.to("privateChat" + privateChatId).emit("seen")
       callback({ status: "ok", messages: messages.reverse() })
     } catch (error) {
       console.error("error: " + error)
       socket.emit("error", { message: "Failed to join privatechat" })
       callback({ status: "error" })
     }
-
   })
 
   socket.on("sendPrivateMessage", async ({ content, privateChatId }, callback) => {
@@ -235,6 +245,7 @@ io.on("connection", async (socket) => {
   // Leave a group (called on cleanup/unmount)
   socket.on("leaveGroup", (groupId) => {
     if (socket.data.currentRoom === groupId) {
+      socket.to(groupId).emit("userleaved", { username: userName, userId: userId })
       socket.leave(groupId);
       socket.data.currentRoom = "global"; // Default back to global
       console.log(`${userName} left group: ${groupId}`);
@@ -385,7 +396,7 @@ io.on("connection", async (socket) => {
       }
     }).then((getedUser) => {
       io.to("onlineStatus" + userId).emit("onlineStatus", false)
-      console.log(getedUser.name + " status: " + getedUser.isOnline)
+      console.log(getedUser.name + " status: " + getedUser.lastSeen)
     })
   });
 
