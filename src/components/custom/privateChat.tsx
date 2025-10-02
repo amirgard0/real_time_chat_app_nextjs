@@ -74,7 +74,6 @@ export const PrivateChat = ({
   session,
   status,
   socket,
-  isConnected,
   privateChatId: CprivateChatId
 }: {
   session: Session | null,
@@ -119,7 +118,7 @@ export const PrivateChat = ({
       return;
     }
     setSending(true);
-    socket.emit("sendPrivateMessage", { content, privateChatId }, (response: any) => {
+    socket.emit("sendPrivateMessage", { content, isRead: isOnline, privateChatId }, (response: any) => {
       setSending(false);
       inputRef.current!.value = "";
       if (response?.status === "error") {
@@ -186,6 +185,8 @@ export const PrivateChat = ({
     // Cleanup: remove the specific listener
     return () => {
       socket.off("newPrivateMessage");
+      socket.off("onlineStatus")
+      socket.off("seen")
     };
   }, [socket]);
 
@@ -233,7 +234,7 @@ export const PrivateChat = ({
           </div>
         </CardTitle>
         <CardContent className="min-h-[300px] sm:min-h-[400px] p-2 sm:p-4">
-          <ChatBox messages={messages} username={session?.user?.name} isOnlineReading={isOnline} />
+          <ChatBox messages={messages} username={session?.user?.name} />
         </CardContent>
         <CardAction className="w-full p-2 sm:p-4 pt-0">
           <form

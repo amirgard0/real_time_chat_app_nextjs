@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./messageBubble";
 
-export const ChatBox = ({ messages, username, isOnlineReading }: { messages: any[]; username: string; isOnlineReading: boolean }) => {
+export const ChatBox = ({ messages, username }: { messages: any[]; username: string; }) => {
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export const ChatBox = ({ messages, username, isOnlineReading }: { messages: any
 
           return (
             <div key={msg.id} className={`flex ${isUsers ? "justify-end" : "justify-start"}`}>
-              <MessageBubble messageContent={msg.content} messageCreatedAt={msg.createdAt} isRead={msg.isRead || isOnlineReading} isUsers={isUsers} inMessageUsername={inMessageUserName} />
+              <MessageBubble messageContent={msg.content} messageCreatedAt={msg.createdAt} isRead={msg.isRead} isUsers={isUsers} inMessageUsername={inMessageUserName} />
             </div>
           );
         })

@@ -198,7 +198,7 @@ io.on("connection", async (socket) => {
     }
   })
 
-  socket.on("sendPrivateMessage", async ({ content, privateChatId }, callback) => {
+  socket.on("sendPrivateMessage", async ({ content, isRead, privateChatId }, callback) => {
     try {
       const chat = await prisma.privateChat.findUnique({
         where: { id: privateChatId },
@@ -218,7 +218,8 @@ io.on("connection", async (socket) => {
         data: {
           content: content,
           chatId: privateChatId,
-          senderId: userId
+          senderId: userId,
+          isRead: isRead,
         }
       })
 
@@ -228,6 +229,7 @@ io.on("connection", async (socket) => {
         user: { name: userName },
         createdAt: privateMessage.createdAt,
         privateChatId: privateChatId,
+        isRead: privateMessage.isRead
       })
       if (typeof callback === "function") {
         callback({ status: "ok" })

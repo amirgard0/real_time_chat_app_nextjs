@@ -2,14 +2,13 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -25,7 +24,6 @@ import { cn } from "@/lib/utils"
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
-  const router = useRouter()
 
   const { data: session, status } = useSession()
 
@@ -40,10 +38,6 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/login" })
-  }
-
-  const handleNavigation = (href: string) => {
-    router.push(href)
   }
 
   return (
@@ -69,72 +63,78 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Mobile Menu Button */}
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-            <div className="flex flex-col space-y-4 mt-8">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "text-lg font-medium transition-colors hover:text-primary",
-                    pathname === item.href
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  )}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
+        <div className="flex gap-5">
 
-        {/* User Menu */}
-        <div className="flex items-center gap-4">
-          {status == "authenticated" ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={session.user?.image || ""} alt={session.user?.name || ""} />
-                    <AvatarFallback>
-                      {session.user?.name?.charAt(0).toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
+          {/* User Menu */}
+          <div className="flex items-center gap-4">
+            {status == "authenticated" ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={session.user?.image || ""} alt={session.user?.name || ""} />
+                      <AvatarFallback>
+                        {session.user?.name?.charAt(0).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{session.user?.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {session.user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onSelect={handleSignOut}>
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="hidden md:flex gap-2">
+                <Button asChild variant="ghost" size="sm">
+                  <Link href="/login">Sign in</Link>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{session.user?.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {session.user?.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuItem onSelect={handleSignOut}>
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <div className="hidden md:flex gap-2">
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Sign in</Link>
+                <Button asChild size="sm">
+                  <Link href="/register">Sign up</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+          {/* Mobile Menu Button */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
               </Button>
-              <Button asChild size="sm">
-                <Link href="/register">Sign up</Link>
-              </Button>
-            </div>
-          )}
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <div className="flex flex-col space-y-4 mt-8 p-3">
+                {navigationItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "text-lg font-medium transition-colors hover:text-primary",
+                      pathname === item.href
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <div className="hover:bg-accent w-max p-1 px-2 rounded-lg">
+                      {item.label}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+
+
         </div>
       </div>
     </nav>
