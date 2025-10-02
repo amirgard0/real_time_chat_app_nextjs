@@ -4,6 +4,7 @@ import { NextAuthProvider } from "@/providers/nextAuthProvider";
 import "./globals.css";
 import Navbar from "@/components/custom/navbar";
 import { Toaster } from "@/components/ui/sonner";
+import { SocketContextProvider } from "@/providers/socketContextProvider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,9 @@ export default function RootLayout({
       >
         <NextAuthProvider>
           <Navbar />
-          {children}
+          <SocketContextProvider>
+            {children}
+          </SocketContextProvider>
           <Toaster />
         </NextAuthProvider>
       </body>

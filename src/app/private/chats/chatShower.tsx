@@ -3,13 +3,13 @@
 "use client"
 
 import { PrivateChat } from "@/components/custom/privateChat";
-import { useSocket } from "@/hooks/useSocket";
-import { useSession } from "next-auth/react";
+import { SocketSessionContext } from "@/providers/socketContextProvider";
 import { useSearchParams } from "next/navigation";
+import { useContext } from "react";
 
 export const ChatShower = () => {
-  const { data: session, status } = useSession();
-  const { socket, isConnected } = useSocket(session);
+  const { session, isConnected, status, socket } = useContext(SocketSessionContext)
+  console.log(session, isConnected, status, socket)
   const searchParams = useSearchParams()
   const privateChatId = searchParams.get("privateChatId")
   if (!privateChatId) {

@@ -1,13 +1,13 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useSocket } from "@/hooks/useSocket";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardTitle, CardAction } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChatBox } from "@/components/custom/chatBox";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SocketSessionContext } from "@/providers/socketContextProvider";
 
 function ChatSkeleton() {
   return (
@@ -56,7 +56,7 @@ function ChatSkeleton() {
 
 export default function ChatPage() {
   const { data: session, status } = useSession();
-  const { socket, isConnected } = useSocket(session);
+  const { socket, isConnected } = useContext(SocketSessionContext)
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [groupId, setGroupId] = useState<null | string>(null);
