@@ -17,15 +17,13 @@ export const ChatShower = () => {
       <p className="text-lg">Select a chat to start messaging</p>
     </div>
   }
-  return (
-    <div className="w-full">
-      <PrivateChat
-        isConnected={isConnected}
-        status={status}
-        socket={socket}
-        session={session}
-        privateChatId={privateChatId}
-      />
-    </div>
-  );
+  return <div className="w-full h-full">
+    <PrivateChat
+      isConnected={isConnected}
+      status={status}
+      socket={socket}
+      session={session}
+      privateChatId={privateChatId}
+    />
+  </div>
 }

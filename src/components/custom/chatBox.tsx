@@ -1,6 +1,7 @@
 // src/components/custom/chatBox.tsx
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./messageBubble";
+import { MessageCircle } from "lucide-react";
 
 export const ChatBox = ({ messages, username }: { messages: any[]; username: string; }) => {
   const chatRef = useRef<HTMLDivElement>(null);
@@ -13,13 +14,15 @@ export const ChatBox = ({ messages, username }: { messages: any[]; username: str
   return (
     <div
       ref={chatRef}
-      className="bg-muted p-3 sm:p-4 rounded-lg flex flex-col gap-3 max-h-[300px] sm:max-h-[400px] overflow-y-auto"
+      className="h-full p-6 flex flex-col gap-4 overflow-y-auto scrollbar-thin"
       role="log"
       aria-live="polite"
     >
       {messages.length === 0 ? (
-        <div className="flex items-center justify-center h-full text-muted-foreground">
-          <p>No messages yet</p>
+        <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+          <MessageCircle className="h-12 w-12 mb-4 opacity-50" />
+          <p className="text-lg font-medium">No messages yet</p>
+          <p className="text-sm mt-1">Start a conversation by sending a message</p>
         </div>
       ) : (
         messages.map((msg) => {
@@ -35,7 +38,13 @@ export const ChatBox = ({ messages, username }: { messages: any[]; username: str
 
           return (
             <div key={msg.id} className={`flex ${isUsers ? "justify-end" : "justify-start"}`}>
-              <MessageBubble messageContent={msg.content} messageCreatedAt={msg.createdAt} isRead={msg.isRead} isUsers={isUsers} inMessageUsername={inMessageUserName} />
+              <MessageBubble
+                messageContent={msg.content}
+                messageCreatedAt={msg.createdAt}
+                isRead={msg.isRead}
+                isUsers={isUsers}
+                inMessageUsername={inMessageUserName}
+              />
             </div>
           );
         })

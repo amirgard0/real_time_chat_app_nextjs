@@ -32,8 +32,8 @@ const Navbar = () => {
     { href: "/chat", label: "Chat" },
     { href: "/group/create", label: "Create Group" },
     { href: "/group/find", label: "Find Groups" },
-    { href: "/private/create", label: "find users" },
-    { href: "/private/chats", label: "private chats" }
+    { href: "/private/create", label: "Find Users" },
+    { href: "/private/chats", label: "Private Chats" }
   ]
 
   const handleSignOut = async () => {
@@ -41,20 +41,21 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo/Brand */}
-        <Link href="/" className="text-xl font-bold">
+        <Link href="/" className="text-xl font-bold text-primary hover:opacity-80 transition-opacity">
           ChatApp
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-1">
           {navigationItems.map((item) => (
             <Button
               key={item.href}
               variant={pathname === item.href ? "default" : "ghost"}
               asChild
+              className="px-3"
             >
               <Link href={item.href}>
                 {item.label}
@@ -63,24 +64,23 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div className="flex gap-5">
-
+        <div className="flex items-center gap-4">
           {/* User Menu */}
           <div className="flex items-center gap-4">
-            {status == "authenticated" ? (
+            {status === "authenticated" ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full hover:bg-accent transition-colors">
+                    <Avatar className="h-9 w-9 border-2 border-border">
                       <AvatarImage src={session.user?.image || ""} alt={session.user?.name || ""} />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-primary text-primary-foreground font-medium">
                         {session.user?.name?.charAt(0).toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
+                  <DropdownMenuLabel className="font-normal p-4">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{session.user?.name}</p>
                       <p className="text-xs leading-none text-muted-foreground">
@@ -88,7 +88,10 @@ const Navbar = () => {
                       </p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuItem onSelect={handleSignOut}>
+                  <DropdownMenuItem
+                    onSelect={handleSignOut}
+                    className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                  >
                     Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -104,37 +107,48 @@ const Navbar = () => {
               </div>
             )}
           </div>
+
           {/* Mobile Menu Button */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <div className="flex flex-col space-y-4 mt-8 p-3">
+            <SheetContent side="right" className="w-[280px] sm:w-[340px]">
+              <div className="flex flex-col space-y-2 mt-8">
                 {navigationItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "text-lg font-medium transition-colors hover:text-primary",
+                      "text-base font-medium transition-all rounded-lg px-3 py-2",
                       pathname === item.href
-                        ? "text-primary"
-                        : "text-muted-foreground"
+                        ? "bg-primary text-primary-foreground"
+                        : "text-foreground hover:bg-accent"
                     )}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    <div className="hover:bg-accent w-max p-1 px-2 rounded-lg">
-                      {item.label}
-                    </div>
+                    {item.label}
                   </Link>
                 ))}
+                {status !== "authenticated" && (
+                  <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                    <Button asChild variant="outline" className="justify-start">
+                      <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                        Sign in
+                      </Link>
+                    </Button>
+                    <Button asChild className="justify-start">
+                      <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                        Sign up
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </div>
             </SheetContent>
           </Sheet>
-
-
         </div>
       </div>
     </nav>

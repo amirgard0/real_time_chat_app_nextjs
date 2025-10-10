@@ -4,9 +4,10 @@
 
 import { ChatBox } from "@/components/custom/chatBox";
 import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { Link } from "lucide-react";
 import { Session } from "next-auth";
 import { useParams, useSearchParams } from "next/navigation";
@@ -152,19 +153,20 @@ export const PrivateChat = ({
     } else {
       toast.warning("please use the chat buttons to load the chat instead of urls.")
     }
+    socket.emit("chatOnline", true)
 
     handleJoin();
 
     return () => {
       socket.emit("leaveGroup", "privateChat" + privateChatId);
       socket.emit("leaveOnlineStatus", targetUserId)
+      socket.emit("chatOnline", false)
     };
   }, [socket, privateChatId]);
 
 
   useEffect(() => {
     if (!socket) return;
-
     // Add the event listener
     socket.on("newPrivateMessage", (msg: any) => {
       messagesRef.current.push(msg)
@@ -219,68 +221,67 @@ export const PrivateChat = ({
 
 
   return (
-    <div className="w-full">
-      <Card className="p-2 sm:p-4 shadow-lg w-full">
-        <CardTitle className="px-2 sm:px-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-bold">{targetUsername}</h1>
-            <div className="text-sm sm:text-base">
-              {isOnline ? (
-                <span className="text-green-600">Online</span>
-              ) : (
-                <span className="text-muted-foreground">Last seen: {lastSeen}</span>
-              )}
+    <div className="w-full max-w-6xl mx-auto p-4 space-y-6">
+      {/* Header */}
+      <Card className="bg-background border shadow-sm">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-2 h-2 rounded-full animate-pulse",
+                isOnline ? "bg-green-500" : "bg-muted-foreground"
+              )} />
+              <div>
+                <h1 className="text-xl font-semibold text-foreground">
+                  {targetUsername}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {isOnline ? (
+                    <span className="text-green-600 font-medium">Online</span>
+                  ) : (
+                    <span>Last seen: {lastSeen}</span>
+                  )}
+                </p>
+              </div>
             </div>
           </div>
-        </CardTitle>
-        <CardContent className="min-h-[300px] sm:min-h-[400px] p-2 sm:p-4">
-          <ChatBox messages={messages} username={session?.user?.name} />
+        </CardHeader>
+
+        {/* Chat Messages */}
+        <CardContent className="p-0">
+          <div className="h-[500px] bg-muted/20">
+            <ChatBox messages={messages} username={session?.user?.name} />
+          </div>
         </CardContent>
-        <CardAction className="w-full p-2 sm:p-4 pt-0">
+
+        {/* Message Input */}
+        <CardFooter className="p-6 border-t">
           <form
             action={handleSendMessageAction}
-            className="flex w-full gap-2 flex-col sm:flex-row"
+            className="flex w-full gap-3"
           >
             <Input
-              placeholder="Type a message..."
-              className="w-full"
+              placeholder="Type your message..."
+              className="flex-1 bg-background"
               name="message"
               ref={inputRef}
-              aria-label="Message input"
               disabled={sending}
             />
             <Button
               disabled={sending}
-              aria-label="Send message"
-              className="w-full sm:w-auto"
+              className="gap-2"
+              size="lg"
             >
               {sending ? (
-                <svg
-                  className="animate-spin h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
-                "Send"
+                <>
+                  Send
+                </>
               )}
             </Button>
           </form>
-        </CardAction>
+        </CardFooter>
       </Card>
     </div>
   )

@@ -6,6 +6,10 @@ import { prisma } from "@/lib/prisma"
 import { ChatShower } from "./chatShower"
 import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
+import Link from "next/link"
+import { MessageCircle } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { cn } from "@/lib/utils"
 
 const handleChatAction = async (formData: FormData) => {
   "use server"
@@ -81,56 +85,111 @@ export default async () => {
   )
 
   if (chatCard.length <= 0) {
-    return <div className="p-7">
-      not any chats yet
-    </div>
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] p-8">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="p-4 bg-muted rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+            <MessageCircle className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground">No Chats Yet</h2>
+          <p className="text-muted-foreground">
+            Start a conversation by finding users and sending them a message.
+          </p>
+          <Button asChild className="mt-4">
+            <Link href="/private/create">
+              Find Users
+            </Link>
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 p-2 sm:p-4 md:p-6">
-      <div className="w-full lg:w-[300px] xl:w-[350px] flex-shrink-0">
-        <div className="flex flex-col gap-2">
-          {chatCard.length <= 0 ? (
-            <div className="p-4 text-center text-muted-foreground">
-              No chats yet
-            </div>
-          ) : (
-            chatCard.map((item) => {
+    <div className="flex flex-col lg:flex-row gap-6 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto min-h-screen">
+      {/* Chat List Sidebar */}
+      <div className="w-full lg:w-80 xl:w-96 flex-shrink-0">
+        <Card className="p-6 h-fit">
+          <div className="space-y-1 mb-6">
+            <h1 className="text-2xl font-bold text-foreground">Your Chats</h1>
+            <p className="text-sm text-muted-foreground">
+              {chatCard.length} conversation{chatCard.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {chatCard.map((item) => {
               if (!item) return null;
               const lastMessage = item.chat.messages[0]
               return (
-                <Card key={item.chat.id} className="p-3 gap-2 hover:bg-accent transition-colors">
-                  <h6 className="text-sm font-semibold flex justify-between items-center">
-                    <span className="truncate">{item.other.username}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {lastMessage && `${lastMessage.createdAt.getHours()}:${lastMessage.createdAt.getMinutes().toString().padStart(2, '0')}`}
-                    </span>
-                  </h6>
+                <Card
+                  key={item.chat.id}
+                  className="p-4 hover:bg-accent/50 transition-all duration-200 border cursor-pointer group hover:shadow-sm"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative">
+                        <Avatar className="h-10 w-10 border-2 border-background">
+                          <AvatarFallback className="bg-primary text-primary-foreground font-medium">
+                            {item.other.username?.charAt(0).toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className={cn(
+                          "absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-background",
+                          item.other.user.isOnline ? "bg-green-500" : "bg-muted-foreground"
+                        )} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {item.other.username}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {item.other.user.isOnline ? "Online" : `Last seen ${item.lastSeen}`}
+                        </p>
+                      </div>
+                    </div>
+                    {lastMessage && (
+                      <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                        {lastMessage.createdAt.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    )}
+                  </div>
+
                   {lastMessage && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {lastMessage.content.slice(0, 30)}
-                      {lastMessage.content.length > 30 && '...'}
+                    <p className="text-sm text-muted-foreground truncate mb-3">
+                      {lastMessage.content}
                     </p>
                   )}
-                  <form action={handleChatAction} className="mt-2">
+
+                  <form action={handleChatAction}>
                     <input type="hidden" value={item.chat.id} name="chatId" />
                     <input type="hidden" value={item.lastSeen} name="lastSeen" />
                     <input type="hidden" value={item.other.userId} name="targetUserId" />
                     <input type="hidden" value={item.other.user.name!} name="targetUsername" />
-                    <Button type="submit" size="sm" className="w-full">
+                    <Button
+                      type="submit"
+                      variant="outline"
+                      className="w-full gap-2 group-hover:border-primary/50 transition-colors"
+                    >
+                      <MessageCircle className="h-4 w-4" />
                       Open Chat
                     </Button>
                   </form>
                 </Card>
               )
-            })
-          )}
-        </div>
+            })}
+          </div>
+        </Card>
       </div>
+
+      {/* Chat Area */}
       <div className="flex-1 min-w-0">
-        <div className="bg-background rounded-lg border">
+        <Card className="h-full border rounded-lg shadow-sm">
           <ChatShower />
-        </div>
+        </Card>
       </div>
     </div>
   )

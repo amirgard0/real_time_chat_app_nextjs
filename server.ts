@@ -48,17 +48,17 @@ io.on("connection", async (socket) => {
   // })
   // console.log("update done")
 
-  prisma.user.update({
-    where: {
-      id: userId
-    },
-    data: {
-      isOnline: true
-    }
-  }).then((user) => {
+  socket.on("chatOnline", async (online: boolean) => {
+    const user = await prisma.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        isOnline: online
+      }
+    })
     io.to("onlineStatus" + userId).emit("onlineStatus", user.isOnline)
   })
-
   socket.on("joinOnlineStatus", async (userId, callback) => {
     socket.join("onlineStatus" + userId)
     if (typeof callback == "function") {
